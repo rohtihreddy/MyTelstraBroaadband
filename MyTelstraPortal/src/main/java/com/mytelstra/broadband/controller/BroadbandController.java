@@ -89,18 +89,17 @@ public class BroadbandController {
 	       return broadbandServices.saveCardDetails(cardDetails);
 	}
 	
-	@RequestMapping(value = "/payment_success/{planid}", method = RequestMethod.GET)
-	public Map paymentDetails(@PathVariable("planid") String id) {
+	@RequestMapping(value = "/payment_success/{planid}/{userid}", method = RequestMethod.GET)
+	public Map paymentDetails(@PathVariable("planid") String id,@PathVariable("userid") String userid) {
 		Map<String,String> p = broadbandServices.paymentDetails(); 
 		Map result= new HashMap<String,String>();
 		result.putAll(p);
 		BroadbandPlans broadband_plan = broadbandServices.getBroadbandPlanById(id);
-		result.put("plan_Id", broadband_plan.getId());
-		result.put("plan_name", broadband_plan.getPlan());
-		result.put("price", broadband_plan.getPrice());
-		result.put("speed", broadband_plan.getSpeed());
-		result.put("data", broadband_plan.getData());
-		result.put("validity", broadband_plan.getValidity());
+		UserInfo user=broadbandServices.getUserById(userid);
+		result.put("reference_id", user.getActiveplan().getReferenceId());
+		result.put("payment_mode", user.getActiveplan().getPaymentMode());
+		result.put("broadband_plan", broadband_plan);
+		
 		return result;
 		
 	} 
@@ -118,7 +117,7 @@ public class BroadbandController {
 	
 
 	@RequestMapping(value="/currentBill/{userId}",method = RequestMethod.GET)
-	public Map<String,String> getCurrentBillDetails(@PathVariable("userId") String userId) {
+	public Map getCurrentBillDetails(@PathVariable("userId") String userId) {
 		RechargeInfo rechargeInfo= broadbandServices.getCurrentPlan(userId);
 		BroadbandPlans plan = broadbandServices.getBroadbandPlanById(rechargeInfo.getPlanId());
 		Map result= new HashMap<String,String>();
@@ -136,6 +135,7 @@ public class BroadbandController {
 		return d.getDataUsage();
 	}
 
+	
 /*
 	@RequestMapping(value="/rechargeHistory", method = RequestMethod.GET)
 	public List<RechargeInfo> userrechargehistory(@RequestBody String id){

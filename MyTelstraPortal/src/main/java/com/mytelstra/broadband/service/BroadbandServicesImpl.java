@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import com.mongodb.client.MongoClient;
 import com.mytelstra.broadband.entity.Address;
 import com.mytelstra.broadband.entity.BroadbandPlans;
 import com.mytelstra.broadband.entity.CardDetails;
@@ -51,8 +50,6 @@ public class BroadbandServicesImpl implements BroadbandServices{
 	@Autowired
 	private DataUsageRepo dataUsageRepo;
 	
-	@Autowired
-	private MongoClient client;
 
 	@Override
 	public List<BroadbandPlans> viewPlans() {
@@ -84,8 +81,6 @@ public class BroadbandServicesImpl implements BroadbandServices{
 	public Map paymentDetails() {
 		Map payment= new HashMap<String,String>() ;
 		payment.put("Status", "Payment Succesfull");
-		payment.put("transaction_id","basvgfs6r6263");
-		
 		return payment;
 		
 	}

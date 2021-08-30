@@ -24,9 +24,8 @@ public interface BroadbandServices {
 	public RechargeInfo getCurrentPlan(String id);
 	public Map<String,String> getCurrentBalance(String id);
 	public String rechargeUserById(String userid, String planid);
-	//public DataUsage getDataUsageOfCustomer(String custId);
 	public boolean validateAddress(@Valid Address address);
 	List<BroadbandPlans> getUpgradePlans(String id);
-	public DataUsage getDataUsageOfUser(String custId);
+	public DataUsage getDataUsageOfUser(String userId);
 	
 }
