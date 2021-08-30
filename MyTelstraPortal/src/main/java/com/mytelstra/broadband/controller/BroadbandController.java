@@ -90,15 +90,11 @@ public class BroadbandController {
 	}
 	
 	@RequestMapping(value = "/payment_success/{planid}/{userid}", method = RequestMethod.GET)
-	public Map paymentDetails(@PathVariable("planid") String id,@PathVariable("userid") String userid) {
-		Map<String,String> p = broadbandServices.paymentDetails(); 
+	public Map paymentDetails(@PathVariable("planid") String planid,@PathVariable("userid") String userid) {
+		Map<String,String> p = broadbandServices.paymentDetails(planid,userid); 
 		Map result= new HashMap<String,String>();
 		result.putAll(p);
-		BroadbandPlans broadband_plan = broadbandServices.getBroadbandPlanById(id);
-		UserInfo user=broadbandServices.getUserById(userid);
-		result.put("reference_id", user.getActiveplan().getReferenceId());
-		result.put("payment_mode", user.getActiveplan().getPaymentMode());
-		result.put("broadband_plan", broadband_plan);
+		
 		
 		return result;
 		
@@ -131,8 +127,8 @@ public class BroadbandController {
 	
 	@RequestMapping(value = "/view_datausage/{userId}", method = RequestMethod.GET)
  	public  List<DataUsageDetails> getDataUsageOfUser(@PathVariable("userId") String userId) {
-		DataUsage d=broadbandServices.getDataUsageOfUser(userId);
-		return d.getDataUsage();
+		List<DataUsageDetails> d=broadbandServices.getDataUsageOfUser(userId);
+		return d;
 	}
 
 	

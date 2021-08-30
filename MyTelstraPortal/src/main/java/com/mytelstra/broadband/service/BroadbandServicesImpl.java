@@ -4,6 +4,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -58,7 +59,7 @@ public class BroadbandServicesImpl implements BroadbandServices{
 		
 		for(BroadbandPlans p: mobileplans)
 			System.out.println(p);
-		
+		System.out.println("============================================================================================================");
 		return mobileplans;
 	}
 
@@ -68,7 +69,7 @@ public class BroadbandServicesImpl implements BroadbandServices{
 		List<UserInfo> userinfo = userrepo.findAll();
 		for(UserInfo u:userinfo)
 			System.out.println(u);
-		
+		System.out.println("============================================================================================================");
 		return userinfo;
 	}
 
@@ -78,10 +79,23 @@ public class BroadbandServicesImpl implements BroadbandServices{
 	}
 	
 	@Override
-	public Map paymentDetails() {
+	public Map paymentDetails(String planid,String userid) {
+	
+		BroadbandPlans broadband_plan = getBroadbandPlanById(planid);
+		UserInfo user=getUserById(userid);
 		Map payment= new HashMap<String,String>() ;
+		try {
+		payment.put("reference_id", user.getActiveplan().getReferenceId());
 		payment.put("Status", "Payment Succesfull");
+		payment.put("payment_mode", user.getActiveplan().getPaymentMode());
+		payment.put("broadband_plan", broadband_plan);
 		return payment;
+		}catch(Exception e) {
+			System.out.println("Check User and plan details/ recharge not succesfull");
+			payment.put("Recharge not succesfull/ Check User and plan details",null );
+			return payment;
+		}
+		
 		
 	}
 	
@@ -94,9 +108,9 @@ public class BroadbandServicesImpl implements BroadbandServices{
 			rechargehistory = userinfo.get().getPlanshistory();
 		}catch(Exception e) {
 			//if the user not found with _id=id
-			System.out.println("No Such User Found");
+			System.out.println("No Such User Found...can't get recharge history");
+			System.out.println("============================================================================================================");
 			rechargehistory.add(0,null);
-			return null;
 		}
 		return rechargehistory;
 	}
@@ -107,7 +121,6 @@ public class BroadbandServicesImpl implements BroadbandServices{
 		Optional<UserInfo> userinfo = userrepo.findById(id);
 		if(!userinfo.isPresent())
 			return new UserInfo();
-		System.out.println(userinfo.get());
 		return userinfo.get();
 	}
 
@@ -117,6 +130,7 @@ public class BroadbandServicesImpl implements BroadbandServices{
 		if(!planinfo.isPresent())
 			return new BroadbandPlans();
 		System.out.println(planinfo.get());
+		System.out.println("============================================================================================================");
 		return planinfo.get();
 	}
 
@@ -126,6 +140,7 @@ public class BroadbandServicesImpl implements BroadbandServices{
 		if(!userinfo.isPresent() || userinfo.get().getActiveplan()==null)
 			return new RechargeInfo();
 		System.out.println(userinfo.get().getActiveplan());
+		System.out.println("============================================================================================================");
 		return userinfo.get().getActiveplan();
 	}
 
@@ -161,7 +176,7 @@ public class BroadbandServicesImpl implements BroadbandServices{
 
 		
 		System.out.println("today "+today);
-		System.out.println("Validity "+planinfo.get().getValidity());
+		System.out.println("Validity "+planinfo.get().getValidity()+" days");
 		
 		
 		RechargeInfo rinfo = new RechargeInfo();
@@ -179,32 +194,36 @@ public class BroadbandServicesImpl implements BroadbandServices{
 				e1.printStackTrace();
 			}
 			if(todate.compareTo(currentPlanExpiry)>0) {
+				// recharge when active plan is expired 
 				rinfo.setDateOfRecharge(today);
 				rinfo.setDateOfExpiry(Lastdate);
 				user.setActiveplan(rinfo);
+				user.setDataremaining(planinfo.get().getData());
 				System.out.println("Expiry Date "+Lastdate);
 			}
 			else {
+				// for upgrading plan 
 				rinfo.setDateOfRecharge(user.getActiveplan().getDateOfExpiry());
 				rinfo.setDateOfExpiry(getLastDate(user.getActiveplan().getDateOfExpiry(),planinfo.get().getValidity()));
 				System.out.println("Expiry Date "+Lastdate);
 			}
 		}
 		else {
+			// normal recharge when no active plan
 			rinfo.setDateOfRecharge(today);
 			rinfo.setDateOfExpiry(Lastdate);
 			user.setActiveplan(rinfo);
+			user.setDataremaining(planinfo.get().getData());
 			System.out.println("Expiry Date "+Lastdate);
 		}
 		
 		List<RechargeInfo> history = user.getPlanshistory();
 		history.add(rinfo);
 		user.setPlanshistory(history);
-		user.setDataremaining(planinfo.get().getData());
 		userrepo.save(user);
-		System.out.println(user);
-		
-		return "Recharge Successful\n"+userrepo.findById(userid).get();
+		System.out.println("Active Plan "+user.getActiveplan());
+		System.out.println("============================================================================================================");
+		return "Recharge Successful\nActive Plan:\n"+user.getActiveplan()+"\nCurrent Recharge Details:\n"+rinfo;
 	}
 
 	@Override
@@ -236,17 +255,39 @@ public class BroadbandServicesImpl implements BroadbandServices{
 
 	@Override
 	public List<BroadbandPlans> getUpgradePlans(String id) {
-
 		UserInfo user=  getUserById(id);
-		BroadbandPlans plan= getBroadbandPlanById(user.getActiveplan().getPlanId());
-		System.out.println(plan.getPrice());
-			return broadbandrepo.UpgradePlans(plan.getPrice());
-	}
 	
+		try {
+		BroadbandPlans plan= getBroadbandPlanById(user.getActiveplan().getPlanId());
+		System.out.println("Active plan price is "+plan.getPrice());
+		List<BroadbandPlans> b= broadbandrepo.UpgradePlans(plan.getPrice());
+		if(b.isEmpty()) {
+			System.out.println("The active plan is highest plan no plans to upgrade");
+			System.out.println("============================================================================================================");
+			return b;
+		}else {
+			System.out.println("============================================================================================================");
+			return b;
+			
+		}
+	}
+		catch(NullPointerException e)
+		{
+			System.out.println("Check user details..can't get upgrade plans");
+			System.out.println("============================================================================================================");
+			return Collections.EMPTY_LIST;
+		}
+	}
 	@Override
-	public DataUsage getDataUsageOfUser(String userId) {
+	public List<DataUsageDetails> getDataUsageOfUser(String userId) {
+	try {
 		DataUsage d=  dataUsageRepo.getDataUsageByUserId(userId);
-		return d;
+		return d.getDataUsage();
+	}catch(NullPointerException e) {
+		System.out.println("User data usage not found...check user details");
+		System.out.println("============================================================================================================");
+		return Collections.EMPTY_LIST;
+	}
 	}
 
 	

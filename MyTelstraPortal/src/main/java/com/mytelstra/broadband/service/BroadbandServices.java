@@ -9,6 +9,7 @@ import com.mytelstra.broadband.entity.Address;
 import com.mytelstra.broadband.entity.BroadbandPlans;
 import com.mytelstra.broadband.entity.CardDetails;
 import com.mytelstra.broadband.entity.DataUsage;
+import com.mytelstra.broadband.entity.DataUsageDetails;
 import com.mytelstra.broadband.entity.RechargeInfo;
 import com.mytelstra.broadband.entity.UserInfo;
 
@@ -16,7 +17,7 @@ public interface BroadbandServices {
 	public List<BroadbandPlans> viewPlans();
 	public List<UserInfo> userinfo();
 	public CardDetails saveCardDetails(CardDetails cardDetails);
-	public Map paymentDetails();
+	public Map paymentDetails(String planid,String userid);
 
 	public UserInfo getUserById(String id);
 	public List<RechargeInfo> userRechargeHistory(String id);
@@ -26,6 +27,6 @@ public interface BroadbandServices {
 	public String rechargeUserById(String userid, String planid);
 	public boolean validateAddress(@Valid Address address);
 	List<BroadbandPlans> getUpgradePlans(String id);
-	public DataUsage getDataUsageOfUser(String userId);
+	public List<DataUsageDetails> getDataUsageOfUser(String userId);
 	
 }
